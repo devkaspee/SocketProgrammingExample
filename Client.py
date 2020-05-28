@@ -1,10 +1,11 @@
 from socket import *
+import time
 
-serverName = "127.0.0.1"
-serverPort = 12701
+serverName = "192.168.123.140"
+serverPort = 12001
 
 ClientSocket = socket(AF_INET, SOCK_STREAM)  # TCP 연결 생성
-
+ClientSocket.setsockopt(IPPROTO_TCP, TCP_NODELAY, True)
 ClientSocket.connect((serverName, serverPort))
 
 req = ""  # 요청 문자열
@@ -22,5 +23,8 @@ ClientSocket.send(req.encode())  # 요청을 보냅니다.
 
 modifiedMessage = ClientSocket.recv(1024)  # 응답을 받고 콘솔에 출력합니다.
 print(modifiedMessage.decode())
+ClientSocket.send("Bye".encode())
 
+
+#ClientSocket.shutdown(1)
 ClientSocket.close()
