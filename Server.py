@@ -1,18 +1,23 @@
 from socket import *
 import sys
+from time import sleep
+
+# Input Server IP ####################
+serverIp = "192.168.123.140"
+######################################
 
 serverSocket = socket(AF_INET, SOCK_STREAM)  # 기본적인 조합 (생략 가능)
-serverPort = 12701
+serverPort = 12001
 # serverIp = "192.168.123.150"
-serverIp = "127.0.0.1"
+
 serverSocket.bind((serverIp, serverPort))  # IP와 Port 를 바인드함
 serverSocket.listen(1)  # 대기 상태로 전환
-
+serverSocket.setsockopt(IPPROTO_TCP, TCP_NODELAY, True) # 즉시 처리
 cnt = 5  # 서버에서 처리할 수 있는 최대 전송량
 
 HTTP_METHOD = ["GET", "POST", "HEAD"]  # 해당 웹서버가 처리할 수 있는 Method
 
-HTTP_BODY = "<html><body><h1>Hello, world!</h1>\n" \
+HTTP_BODY = "\r\n<html><body><h1>Hello, world!</h1>\n" \
             "<p>This Page is Virtual Page" \
             "</body></html>"                    # 서버가 가지고 있는 http 객체
 
@@ -28,6 +33,7 @@ while cnt:
 
     # Set Up a new connection from the client
     connectionSocket, addr = serverSocket.accept()
+    connectionSocket.setsockopt(IPPROTO_TCP, TCP_NODELAY, True)
     HTMLreturn = True                               # 변수 초기화
     req = ""                                        # 변수 초기화
     message = connectionSocket.recv(1024).decode()  # 메세지 수신
@@ -94,13 +100,14 @@ while cnt:
     if not req:
         req = reqFor+" 200 OK"  # 위에서 모두 이상이 없다면 200 OK로 객체 전송
 
-    req += "\r\nDate: Sun, 13 Jan 2019 17:28:13 GMT\r\n" + (RES_Hdr if HTMLreturn else " ")  # 응답 헤더 필드를 메세지에 삽입
+    req += "\r\nDate: Sun, 13 Jan 2019 17:28:13 GMT\r\n" + (RES_Hdr if HTMLreturn else "") + "\r\n" # 응답 헤더 필드를 메세지에 삽입
     if HTMLreturn:
         req+= HTTP_BODY  # HTTP 객체를 삽입
+    connectionSocket.sendall((req).encode())  # 보냄
+    if connectionSocket.recv(1024).decode().strip() == "Bye":
+        print("Disconnected from Client")
 
-    connectionSocket.send((req).encode())  # 보냄
-
-    connectionSocket.close()  # 요청을 끝낸다
+        connectionSocket.close()
     cnt -= 1
 
 serverSocket.close()
