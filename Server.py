@@ -3,7 +3,7 @@ import sys
 from time import sleep
 
 # Input Server IP ####################
-serverIp = "192.168.123.140"
+serverIp = "192.168.123.150"
 ######################################
 
 serverSocket = socket(AF_INET, SOCK_STREAM)  # 기본적인 조합 (생략 가능)
